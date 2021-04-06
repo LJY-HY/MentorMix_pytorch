@@ -33,16 +33,16 @@ python train.py --noise_rate 0.2
 
 
 ## Accuracy
-Below is the result of the test set accuracy for CIFAR-10, CIFAR-100 dataset training. Results are averaged over 3 repeated experiments over same circumstances.
+Below is the result of the test accuracy for CIFAR-10, CIFAR-100 dataset training. Results are averaged over 3 repeated experiments of same circumstances.
 
 **Accuracy of models trained on CIFAR10**
 |    noise rate     |   0.2    |   0.4    |   0.6    |   0.8    |
 |:-----------------:|:--------:|:--------:|:--------:|:--------:|
-|       Accuracy    |   95.09% |   --.--% |   --.--% |   --.--% |
+|       ResNet18    |   95.09% |   --.--% |   --.--% |   --.--% |
 
 
 
 **Accuracy of models trained on CIFAR100**
 |    noise rate     |   0.2    |   0.4    |   0.6    |   0.8    |
 |:-----------------:|:--------:|:--------:|:--------:|:--------:|
-|       Accuracy    |   --.--% |   --.--% |   --.--% |   --.--% |
+|       ResNet18    |   --.--% |   --.--% |   --.--% |   --.--% |
