@@ -38,11 +38,11 @@ Below is the result of the test set accuracy for CIFAR-10, CIFAR-100 dataset tra
 **Accuracy of models trained on CIFAR10**
 |    noise rate     |   0.2    |   0.4    |   0.6    |   0.8    |
 |:-----------------:|:--------:|:--------:|:--------:|:--------:|
-|       Accuracy    |   95.09% |   95.09% |   95.09% |   95.09% |
+|       Accuracy    |   95.09% |   --.--% |   --.--% |   --.--% |
 
 
 
 **Accuracy of models trained on CIFAR100**
 |    noise rate     |   0.2    |   0.4    |   0.6    |   0.8    |
 |:-----------------:|:--------:|:--------:|:--------:|:--------:|
-|       Accuracy    |   95.09% |   95.09% |   95.09% |   95.09% |
+|       Accuracy    |   --.--% |   --.--% |   --.--% |   --.--% |
