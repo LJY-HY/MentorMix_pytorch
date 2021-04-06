@@ -1,0 +1,8 @@
+utils/__pycache__/*
+datasets/__pycache__/*
+workspace/*
+checkpoint/*
+*.pyc
+*.sh
+sh/*
+output/
