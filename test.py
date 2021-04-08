@@ -28,7 +28,7 @@ def main():
     optimizer, scheduler = get_optim_scheduler(args,net)
 
     # name
-    checkpoint = torch.load('./checkpoint/'+args.dataset+'/ResNet18')
+    checkpoint = torch.load('./checkpoint/'+args.dataset+'/'+args.arch)
     net.load_state_dict(checkpoint)
 
     acc = test(args, net, test_dataloader, optimizer, scheduler, 1)

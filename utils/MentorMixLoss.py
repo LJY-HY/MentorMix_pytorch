@@ -20,7 +20,7 @@ def MentorMixLoss(args,net, x_i, y_i, gamma_old):
     '''
     XLoss = torch.nn.CrossEntropyLoss(reduction='none')
     
-    # MentorNet
+    # MentorNet 1
     batch_size = x_i.shape[0]
     x_i, y_i = x_i.to(args.device), y_i.to(args.device)   
     with torch.no_grad():
@@ -47,6 +47,16 @@ def MentorMixLoss(args,net, x_i, y_i, gamma_old):
     x_tilde = x_i * lambdas.view(lambdas.size(0),1,1,1) + x_j * (1-lambdas).view(lambdas.size(0),1,1,1)
     outputs_tilde = net(x_tilde)
     y_tilde = label_i * lambdas.view(lambdas.size(0),1) + label_j * (1-lambdas).view(lambdas.size(0),1)
-    loss = lambdas*XLoss(outputs_tilde,y_i) + (1-lambdas)*XLoss(outputs_tilde,y_j)
+    
+    if args.second_reweight:
+        with torch.no_grad():
+            loss = lambdas*XLoss(outputs_tilde,y_i) + (1-lambdas)*XLoss(outputs_tilde,y_j)
+            loss_value, _ = loss.sort()
+            l_p = loss_value[int(batch_size*args.gamma_p)]      
+            v = (loss<l_p).float()
+        loss = lambdas*XLoss(outputs_tilde,y_i) + (1-lambdas)*XLoss(outputs_tilde,y_j)
+        loss = loss*v
+    else:
+        loss = lambdas*XLoss(outputs_tilde,y_i) + (1-lambdas)*XLoss(outputs_tilde,y_j)
     return loss.mean(), gamma
     
