@@ -37,7 +37,7 @@ def main():
     best_acc=0
     gamma_old = 0
     for epoch in range(args.epoch):
-        train(args, net, train_dataloader, optimizer, scheduler, gamma_old, epoch)
+        gamma_old = train(args, net, train_dataloader, optimizer, scheduler, gamma_old, epoch)
         acc = test(args, net, test_dataloader, optimizer, scheduler, epoch)
         scheduler.step()
         if best_acc<acc:
@@ -67,7 +67,7 @@ def train(args, net, train_dataloader, optimizer, scheduler, gamma_old, epoch):
                     )
         p_bar.update()
     p_bar.close()
-    return train_loss/train_dataloader.__len__()
+    return gamma_old
 
 def test(args, net, test_dataloader, optimizer, scheduler, epoch):
     net.eval()

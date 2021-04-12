@@ -43,7 +43,7 @@ def get_optim_scheduler(args,net):
         pass
 
     if args.scheduler == 'MultiStepLR':
-        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, [50,100,150,200],gamma=0.9)
+        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, [int(args.epoch*0.5),int(args.epoch*0.75)],gamma=0.1)
     elif args.scheduler == 'CosineAnnealing':
         scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer,T_max=args.epoch)
     elif args.scheduler == 'CosineWarmup':
