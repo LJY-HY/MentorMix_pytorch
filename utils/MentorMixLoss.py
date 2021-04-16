@@ -38,8 +38,6 @@ def MentorMixLoss(args,net, x_i, y_i, gamma_old, epoch):
     # Prepare Mixup
     x_j = x_i[indices_j]
     y_j = y_i[indices_j]
-    label_i = F.one_hot(y_i, num_classes= args.num_classes)
-    label_j = F.one_hot(y_j,num_classes= args.num_classes)
     
     # MIXUP
     Beta = diri.Dirichlet(torch.tensor([args.alpha for _ in range(2)])) # 9
@@ -48,7 +46,6 @@ def MentorMixLoss(args,net, x_i, y_i, gamma_old, epoch):
     lambdas = v*lambdas_max + (1-v)*(1-lambdas_max)     
     x_tilde = x_i * lambdas.view(lambdas.size(0),1,1,1) + x_j * (1-lambdas).view(lambdas.size(0),1,1,1)
     outputs_tilde = net(x_tilde)
-    y_tilde = label_i * lambdas.view(lambdas.size(0),1) + label_j * (1-lambdas).view(lambdas.size(0),1)
     
     if args.second_reweight:
         with torch.no_grad():
