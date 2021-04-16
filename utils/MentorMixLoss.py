@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import torch.distributions.categorical as cat
 import torch.distributions.dirichlet as diri
 
-def MentorMixLoss(args,net, x_i, y_i, gamma_old):
+def MentorMixLoss(args,net, x_i, y_i, gamma_old, epoch):
     '''
     inputs : 
         x_i         [bsz,C,H,W]
@@ -17,6 +17,8 @@ def MentorMixLoss(args,net, x_i, y_i, gamma_old):
     outputs:
         loss        [float]
         gamma       [float]
+
+    Simple threshold function is used as MentorNet in this repository.
     '''
     XLoss = torch.nn.CrossEntropyLoss(reduction='none')
     

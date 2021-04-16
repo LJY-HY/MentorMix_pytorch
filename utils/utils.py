@@ -49,6 +49,8 @@ def get_optim_scheduler(args,net):
     elif args.scheduler == 'CosineWarmup':
         torch_lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer,T_max=args.epoch)
         scheduler = CosineAnnealingWarmupRestarts(optimizer, first_cycle_steps = args.epoch, cycle_mult=1.0, max_lr = args.lr, min_lr = 0.001, warmup_steps = args.warmup_duration, gamma = 1.0)
+    elif args.scheduler == 'StepLR':
+        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size = int(args.epoch/40), gamma = 0.9)
     return optimizer, scheduler
 
 def get_transform(dataset='cifar10', mode='train'):
@@ -73,24 +75,7 @@ def get_transform(dataset='cifar10', mode='train'):
         ])
     
     return TF
-
-def mixup_data(args, x, y, alpha=1.0):
-    '''Returns mixed inputs, pairs of targets, and lambda'''
-    if alpha > 0:
-        lam = np.random.beta(alpha, alpha)
-    else:
-        lam = 1
-
-    batch_size = x.size()[0]
-
-    index = torch.randperm(batch_size).to(args.device)
-
-    mixed_x = lam * x + (1 - lam) * x[index, :]
-    y_a, y_b = y, y[index]
-    return mixed_x, y_a, y_b, lam
-def mixup_criterion(criterion, pred, y_a, y_b, lam):
-    return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
-
+    
 class CosineAnnealingWarmupRestarts(_LRScheduler):
     """
         optimizer (Optimizer): Wrapped optimizer.

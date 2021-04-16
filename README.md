@@ -16,7 +16,7 @@ After you have cloned the repository, you can train each model from scratch with
 
 ```bash
 python train.py --noise_rate 0.2 --arch ResNet34
-                --optimizer SGD --scheduler MultiStepLR
+                --optimizer SGD --scheduler StepLR
                 --lr 0.1 --batch_size 128 --epoch 400
                 --wd 2e-4
                 --ema 0.0001
@@ -32,25 +32,28 @@ Most of the hyperparameters refers to the values mentioned in the [paper](https:
 
 **Hyperparameters referred by paper**
 
-|   epoch   | learning rate |  weight decay | Optimizer | Momentum |  Nesterov |    scheduler    |   EMA    |  second reweight |
-|:---------:|:-------------:|:-------------:|:---------:|:--------:|:---------:|:---------------:|:--------:|:----------------:|
-|    400    |      0.1      |     0.0002    |    SGD    |    0.9   |   False   |   MultiStepLR   |  0.0001  |       True       |
+|   epoch   | learning rate |  weight decay | Optimizer | Momentum |  Nesterov |  scheduler  |   EMA    |  second reweight |
+|:---------:|:-------------:|:-------------:|:---------:|:--------:|:---------:|:-----------:|:--------:|:----------------:|
+|    400    |      0.1      |     0.0002    |    SGD    |    0.9   |   False   | StepLR(0.9) |  0.0001  |       True       |
 
 **Hyperparameters referred by Official Code**
 
 - _γ<sub>p</sub>_ and _α_ in CIFAR10
 
-|   Noise Level  | 0.2 | 0.4 | 0.6 | 0.8 |
-|:--------------:|:---:|:---:|:---:|:---:|
-|        _α_       |  2  |  8  |  8  |  4  |
-| _γ<sub>p</sub>_  | 0.8 | 0.6 | 0.6 | 0.2 |
+|    Noise Level   |   0.2   |   0.4   |   0.6   |   0.8   |
+|:----------------:|:-------:|:-------:|:-------:|:-------:|
+|        _α_       |    2    |    8    |    8    |    4    |
+| _γ<sub>p</sub>_  |   0.8   |   0.6   |   0.6   |   0.2   |
+| _second reweight_|  False  |  False  |  True   |  True   |
 
 - _γ<sub>p</sub>_ and _α_ in CIFAR100
 
-|   Noise Level  | 0.2 | 0.4 | 0.6 | 0.8 |
-|:--------------:|:---:|:---:|:---:|:---:|
-|        _α_       |  2  |  8  |  4  |  8  |
-| _γ<sub>p</sub>_  | 0.7 | 0.5 | 0.3 | 0.1 |
+|    Noise Level   |   0.2   |   0.4   |   0.6   |   0.8   |
+|:----------------:|:-------:|:-------:|:-------:|:-------:|
+|        _α_       |    2    |    8    |    4    |    8    |
+| _γ<sub>p</sub>_  |   0.7   |   0.5   |   0.3   |   0.1   |
+| _second reweight_|  False  |  False  |  True   |  True   |
+
 
 
 ## Accuracy
@@ -61,7 +64,7 @@ Below is the result of the test accuracy trained with ResNet34. Results are aver
 |    Noise Level    |   0.2    |   0.4    |   0.6    |   0.8    |
 |:-----------------:|:--------:|:--------:|:--------:|:--------:|
 |      Official     |   95.60  |   94.20  |   91.30  |   81.00  |
-|      This repo    |   --.--  |   --.--  |   --.--  |   --.--  |
+|      This repo    |   95.47  |   93.47  |   88.88  |   --.--  |
 
 
 **CIFAR100**

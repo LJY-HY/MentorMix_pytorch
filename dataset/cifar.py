@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from torch.utils.data import Subset
 from utils.utils import *
-from dataset.CIFAR import CIFAR10
+from dataset.CIFAR import CIFAR10,CIFAR100
 
 def cifar10(args, train_TF = None, test_TF = None):
     if train_TF is None and test_TF is None:

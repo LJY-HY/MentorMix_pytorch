@@ -32,8 +32,8 @@ def main():
     net = get_architecture(args)
     # Get optimizer, scheduler
     optimizer, scheduler = get_optim_scheduler(args,net)
-       
     path = './checkpoint/'+args.dataset+'/'+args.arch+'_'+str(args.noise_rate)+'_trial_'+args.trial
+  
     best_acc=0
     gamma_old = 0
     for epoch in range(args.epoch):
@@ -52,7 +52,7 @@ def train(args, net, train_dataloader, optimizer, scheduler, gamma_old, epoch):
     p_bar = tqdm(range(train_dataloader.__len__()))
     loss_average = 0
     for batch_idx, (inputs, targets) in enumerate(train_dataloader):
-        loss, gamma_old = MentorMixLoss(args,net,inputs,targets,gamma_old)
+        loss, gamma_old = MentorMixLoss(args,net,inputs,targets,gamma_old, epoch)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
