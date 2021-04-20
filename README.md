@@ -3,7 +3,6 @@ This repository implemented paper [Beyond Synthetic Noise: Deep Learning on Cont
 Code of this repository provides training method from **scratch** with dataset [CIFAR10/CIFAR100](https://www.cs.toronto.edu/~kriz/cifar.html).
 
 ## Requirements
-- setup/requirements.txt
 ```bash
 torch 1.7.1
 torchvision 0.8.1
@@ -71,4 +70,4 @@ Below is the result of the test accuracy trained with ResNet34. Results are aver
 |    Noise Level    |   0.2    |   0.4    |   0.6    |   0.8    |
 |:-----------------:|:--------:|:--------:|:--------:|:--------:|
 |      Official     |   78.60  |   71.30  |   64.60  |   41.20  |
-|      This repo    |   --.--  |   --.--  |   --.--  |   --.--  |
+|      This repo    |   76.30  |   71.84  |   38.83  |   --.--  |
