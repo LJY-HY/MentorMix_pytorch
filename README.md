@@ -63,7 +63,7 @@ Below is the result of the test accuracy trained with ResNet34. Results are aver
 |    Noise Level    |   0.2    |   0.4    |   0.6    |   0.8    |
 |:-----------------:|:--------:|:--------:|:--------:|:--------:|
 |      Official     |   95.60  |   94.20  |   91.30  |   81.00  |
-|      This repo    |   95.47  |   93.47  |   88.88  |   --.--  |
+|      This repo    |   95.47  |   93.47  |   88.88  |   20.65  |
 
 
 **CIFAR100**
