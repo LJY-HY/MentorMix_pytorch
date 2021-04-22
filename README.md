@@ -70,4 +70,4 @@ Below is the result of the test accuracy trained with ResNet34. Results are aver
 |    Noise Level    |   0.2    |   0.4    |   0.6    |   0.8    |
 |:-----------------:|:--------:|:--------:|:--------:|:--------:|
 |      Official     |   78.60  |   71.30  |   64.60  |   41.20  |
-|      This repo    |   76.30  |   71.84  |   38.83  |   --.--  |
+|      This repo    |   76.30  |   71.84  |   38.83  |   7.20   |
