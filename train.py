@@ -28,55 +28,68 @@ def main():
     train_dataloader, test_dataloader = globals()[args.dataset](args)
    
     # Get architecture
-    net = get_architecture(args)
+    StudentNet = get_architecture(args)
+    args.arch = 'MentorNet'
+    MentorNet = get_architecture(args)
+
+    # Load MentorNet
+    if args.dataset == 'cifar10':
+        checkpoint = torch.load('./checkpoint/cifar10/MentorNet/MentorNet_trial_'+args.trial)
+    else:
+        checkpoint = torch.load('./checkpoint/cifar100/MentorNet/MentorNet_trial_'+args.trial)
+    MentorNet.load_state_dict(checkpoint)
+    MentorNet.eval()
+
     # Get optimizer, scheduler
-    optimizer, scheduler = get_optim_scheduler(args,net)
+    optimizer_S, scheduler_S = get_optim_scheduler(args,StudentNet)
+    optimizer_M, scheduler_M = get_optim_scheduler(args,MentorNet)
+
     path = './checkpoint/'+args.dataset+'/'+args.arch+'_'+str(args.noise_rate)+'_trial_'+args.trial
   
     best_acc=0
-    gamma_old = 0
+    loss_p_prev = 0
     for epoch in range(args.epoch):
-        gamma_old = train(args, net, train_dataloader, optimizer, scheduler, gamma_old, epoch)
-        acc = test(args, net, test_dataloader, optimizer, scheduler, epoch)
-        scheduler.step()
+        loss_p_prev = train(args, MentorNet, StudentNet, train_dataloader, optimizer_S, scheduler_S, loss_p_prev, epoch)
+        acc = test(args, StudentNet, test_dataloader, optimizer_S, scheduler_S, epoch)
+        scheduler_S.step()
         if best_acc<acc:
             best_acc = acc
             if not os.path.isdir('checkpoint/'+args.dataset):
                 os.makedirs('checkpoint/'+args.dataset)
-            torch.save(net.state_dict(), path)
+            torch.save(StudentNet.state_dict(), path)
 
-def train(args, net, train_dataloader, optimizer, scheduler, gamma_old, epoch):
-    net.train()
+def train(args, MentorNet, StudentNet, train_dataloader, optimizer_S, scheduler_S, loss_p_prev, epoch):
+    StudentNet.train()
     train_loss = 0
     p_bar = tqdm(range(train_dataloader.__len__()))
     loss_average = 0
     for batch_idx, (inputs, targets) in enumerate(train_dataloader):
-        loss, gamma_old = MentorMixLoss(args,net,inputs,targets,gamma_old, epoch)
-        optimizer.zero_grad()
+        loss, loss_p_prev = MentorMixLoss(args,MentorNet,StudentNet,inputs,targets,loss_p_prev, epoch)
+        optimizer_S.zero_grad()
         loss.backward()
-        optimizer.step()
+        optimizer_S.step()
         train_loss += loss.item()
         p_bar.set_description("Train Epoch: {epoch}/{epochs:2}. Iter: {batch:4}/{iter:4}. LR: {lr:.6f}. loss: {loss:.4f}.".format(
                     epoch=epoch + 1,
                     epochs=args.epoch,
                     batch=batch_idx + 1,
                     iter=train_dataloader.__len__(),
-                    lr=scheduler.optimizer.param_groups[0]['lr'],
+                    lr=scheduler_S.optimizer.param_groups[0]['lr'],
                     loss = train_loss/(batch_idx+1))
                     )
         p_bar.update()
     p_bar.close()
-    return gamma_old
+    return loss_p_prev
 
-def test(args, net, test_dataloader, optimizer, scheduler, epoch):
-    net.eval()
+def test(args, StudentNet, test_dataloader, optimizer_S, scheduler_S, epoch):
+    StudentNet.eval()
     test_loss = 0
     acc = 0
     p_bar = tqdm(range(test_dataloader.__len__()))
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(test_dataloader):
             inputs, targets = inputs.to(args.device), targets.to(args.device)
-            outputs = net(inputs)
+            outputs = StudentNet(inputs)
             loss = F.cross_entropy(outputs, targets)
             test_loss += loss.item()
             p_bar.set_description("Test Epoch: {epoch}/{epochs:4}. Iter: {batch:4}/{iter:4}. LR: {lr:.6f}. Loss: {loss:.4f}.".format(
@@ -84,7 +97,7 @@ def test(args, net, test_dataloader, optimizer, scheduler, epoch):
                     epochs=1,
                     batch=batch_idx + 1,
                     iter=test_dataloader.__len__(),
-                    lr=scheduler.optimizer.param_groups[0]['lr'],
+                    lr=scheduler_S.optimizer.param_groups[0]['lr'],
                     loss=test_loss/(batch_idx+1)))
             p_bar.update()
             acc+=sum(outputs.argmax(dim=1)==targets)

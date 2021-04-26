@@ -64,9 +64,10 @@ class CIFAR10(data.Dataset):
         ['test_batch', '40351d587109b95175f43aff81a1287e'],
     ]
 
-    def __init__(self, root='', train=True, meta=False, num_meta=1000,
+    def __init__(self, root='', train=True, meta=False, num_meta=1000, train_MentorNet = False,
                  corruption_prob=0, corruption_type='unif', transform=None, target_transform=None,
                  download=False, seed=1):
+        self.train_MentorNet = train_MentorNet
         self.root = root
         self.transform = transform
         self.target_transform = target_transform
@@ -86,6 +87,7 @@ class CIFAR10(data.Dataset):
         if self.train:
             self.train_data = []
             self.train_labels = []
+            self.train_labels_true = []
             self.train_coarse_labels = []
             for fentry in self.train_list:
                 f = fentry[0]
@@ -106,7 +108,7 @@ class CIFAR10(data.Dataset):
                     img_num_list = [int(self.num_meta/100)] * 100
                     num_classes = 100
                 fo.close()
-
+            
             self.train_data = np.concatenate(self.train_data)
             self.train_data = self.train_data.reshape((50000, 3, 32, 32))
             self.train_data = self.train_data.transpose((0, 2, 3, 1))   # convert to HWC
@@ -114,18 +116,20 @@ class CIFAR10(data.Dataset):
             data_list_val = {}
             for j in range(num_classes):
                 data_list_val[j] = [i for i, label in enumerate(self.train_labels) if label == j]
-
-
+            
             idx_to_meta = []
             idx_to_train = []
             print(img_num_list)
+
+            if self.train_MentorNet:
+                start_idx = int(50000/num_classes * (9/10))
+                img_num_list = [start_idx for i in range(num_classes)]
 
             for cls_idx, img_id_list in data_list_val.items():
                 np.random.shuffle(img_id_list)
                 img_num = img_num_list[int(cls_idx)]
                 idx_to_meta.extend(img_id_list[:img_num])
                 idx_to_train.extend(img_id_list[img_num:])
-
 
             if meta is True:
                 self.train_data = self.train_data[idx_to_meta]
@@ -172,7 +176,12 @@ class CIFAR10(data.Dataset):
 
                 np.random.seed(seed)
                 for i in range(len(self.train_labels)):
-                    self.train_labels[i] = np.random.choice(num_classes, p=C[self.train_labels[i]])
+                    random_choice = np.random.choice(num_classes, p=C[self.train_labels[i]])
+                    if self.train_labels[i]==random_choice:
+                        self.train_labels_true.extend([1])
+                    else:
+                        self.train_labels_true.extend([0])
+                    self.train_labels[i] = random_choice
                 self.corruption_matrix = C
 
         else:
@@ -194,7 +203,7 @@ class CIFAR10(data.Dataset):
 
     def __getitem__(self, index):
         if self.train:
-            img, target = self.train_data[index], self.train_labels[index]
+            img, target, target_true = self.train_data[index], self.train_labels[index], self.train_labels_true[index]
         else:
             img, target = self.test_data[index], self.test_labels[index]
 
@@ -208,14 +217,20 @@ class CIFAR10(data.Dataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        return img, target
+        if self.train_MentorNet:
+            return img,target,target_true
+        else:
+            return img, target
 
     def __len__(self):
         if self.train:
             if self.meta is True:
                 return self.num_meta
             else:
-                return 50000 - self.num_meta
+                if self.train_MentorNet:
+                    return 5000
+                else:
+                    return 50000 - self.num_meta
         else:
             return 10000
 

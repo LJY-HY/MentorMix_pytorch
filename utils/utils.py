@@ -4,6 +4,7 @@ import numpy as np
 from models.MobileNetV2 import *
 from models.ResNet import *
 from models.WideResNet import *
+from models.MentorNet import *
 import torch.optim as optim
 from torchvision import transforms
 from torch.optim.lr_scheduler import _LRScheduler
@@ -28,6 +29,8 @@ def get_architecture(args):
         net = globals()[args.arch](args).to(args.device)
     elif args.arch in ['EfficientNet']:
         pass
+    elif args.arch in ['MentorNet']:
+        net = globals()['MentorNet'](args).to(args.device)
     return net
 
 def get_optim_scheduler(args,net):
@@ -41,8 +44,9 @@ def get_optim_scheduler(args,net):
         optimizer = optim.AdamW(net.parameters(), lr = args.lr)
     elif args.optimizer == 'LARS':
         pass
-
-    if args.scheduler == 'MultiStepLR':
+    if args.scheduler == 'MultiStepLR_Mentor':
+        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, [int(args.epoch*0.5),int(args.epoch*0.65),int(args.epoch*75)],gamma=0.1)
+    elif args.scheduler == 'MultiStepLR':
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, [int(args.epoch*0.5),int(args.epoch*0.75)],gamma=0.1)
     elif args.scheduler == 'CosineAnnealing':
         scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer,T_max=args.epoch)

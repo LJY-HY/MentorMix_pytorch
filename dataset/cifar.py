@@ -12,7 +12,7 @@ def cifar10(args, train_TF = None, test_TF = None):
         train_TF = get_transform(args.dataset, 'train')
         test_TF = get_transform(args.dataset, 'test')
   
-    train_dataset = CIFAR10(root = '/home/esoc/repo/datasets/pytorch/cifar10/', corruption_prob=args.noise_rate, train=True, transform = train_TF, download=True)
+    train_dataset = CIFAR10(root = '/home/esoc/repo/datasets/pytorch/cifar10/', train_MentorNet = args.train_MentorNet, corruption_prob=args.noise_rate, train=True, transform = train_TF, download=True)
     test_dataset = CIFAR10(root = '/home/esoc/repo/datasets/pytorch/cifar10/', train=False, transform = test_TF, download=False)
     train_dataloader = DataLoader(train_dataset, batch_size = args.batch_size, shuffle = True, num_workers = 8)
     test_dataloader = DataLoader(test_dataset, batch_size = args.batch_size, shuffle = False, num_workers = 8)
@@ -23,7 +23,7 @@ def cifar100(args, train_TF = None, test_TF = None):
         train_TF = get_transform(args.dataset, 'train')
         test_TF = get_transform(args.dataset, 'test')
 
-    train_dataset = CIFAR100(root = '/home/esoc/repo/datasets/pytorch/cifar100/', corruption_prob=args.noise_rate, train=True, transform = train_TF, download=True)
+    train_dataset = CIFAR100(root = '/home/esoc/repo/datasets/pytorch/cifar100/', train_MentorNet = args.train_MentorNet, corruption_prob=args.noise_rate, train=True, transform = train_TF, download=True)
     test_dataset = CIFAR100(root = '/home/esoc/repo/datasets/pytorch/cifar100/', train=False, transform = test_TF, download=False)
 
     train_dataloader = DataLoader(train_dataset, batch_size = args.batch_size, shuffle = True, num_workers = 8)
