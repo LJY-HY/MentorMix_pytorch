@@ -24,19 +24,29 @@ def main():
         args.num_classes=10
     elif args.dataset in ['cifar100']:
         args.num_classes=100
+
     # Get Dataset
     train_dataloader, test_dataloader = globals()[args.dataset](args)
    
     # Get architecture
+    args.arch = args.StudentNet
     StudentNet = get_architecture(args)
     args.arch = 'MentorNet'
     MentorNet = get_architecture(args)
-
+    
     # Load MentorNet
     if args.dataset == 'cifar10':
-        checkpoint = torch.load('./checkpoint/cifar10/MentorNet/MentorNet_trial_'+args.trial)
+        path_MentorNet = './checkpoint/cifar10/MentorNet'
+        MentorNet_filename = path_MentorNet+'/MentorNet_'
     else:
-        checkpoint = torch.load('./checkpoint/cifar100/MentorNet/MentorNet_trial_'+args.trial)
+        path_MentorNet = './checkpoint/cifar100/MentorNet'
+        MentorNet_filename = path_MentorNet+'/MentorNet_'
+
+    if args.MentorNet_type == 'PD':
+        MentorNet_filename = MentorNet_filename+args.MentorNet_type+'_0.0_trial_'+args.trial
+    else:
+        MentorNet_filename = MentorNet_filename+args.MentorNet_type+'_'+str(args.noise_rate)+'_trial_'+args.trial
+    checkpoint = torch.load(MentorNet_filename)
     MentorNet.load_state_dict(checkpoint)
     MentorNet.eval()
 
@@ -44,7 +54,10 @@ def main():
     optimizer_S, scheduler_S = get_optim_scheduler(args,StudentNet)
     optimizer_M, scheduler_M = get_optim_scheduler(args,MentorNet)
 
-    path = './checkpoint/'+args.dataset+'/'+args.arch+'_'+str(args.noise_rate)+'_trial_'+args.trial
+    # Set burn-in epoch
+    args.burn_in_epoch = int(args.epoch*0.2)
+
+    path = './checkpoint/'+args.dataset+'/'+args.StudentNet+'_'+args.MentorNet_type+'_'+str(args.noise_rate)+'_trial_'+args.trial
   
     best_acc=0
     loss_p_prev = 0

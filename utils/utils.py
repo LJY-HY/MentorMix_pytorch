@@ -17,6 +17,9 @@ cifar100_mean = (0.5071, 0.4867, 0.4408)
 cifar100_std = (0.2675, 0.2565, 0.2761)
 svhn_mean = (129.3/255, 124.1/255, 112.4/255)
 svhn_std = (68.2/255, 65.4/255.0, 70.4/255.0)
+imagenet_mean = (0.485,0.456,0.406)
+imagenet_std = (0.229,0.224,0.225)
+
 
 def get_architecture(args):
     if args.arch in ['MobileNet']:

@@ -33,7 +33,7 @@ def main():
     MentorNet = get_architecture(args)
     args.arch = args.StudentNet
     StudentNet = get_architecture(args)
-
+    
     # Get optimizer, scheduler
     optimizer_M, scheduler_M = get_optim_scheduler(args,MentorNet)
     optimizer_S, scheduler_S = get_optim_scheduler(args,StudentNet)
@@ -50,10 +50,11 @@ def main():
         vice versa
         '''
         path_MentorNet = './checkpoint/cifar100/MentorNet'
-        MentorNet_filename = path_MentorNet+'/MentorNet_trial_'+args.trial
+        MentorNet_filename = path_MentorNet+'/MentorNet_'
     elif args.dataset == 'cifar100':
         path_MentorNet = './checkpoint/cifar10/MentorNet'
-        MentorNet_filename = path_MentorNet+'/MentorNet_trial_'+args.trial
+        MentorNet_filename = path_MentorNet+'/MentorNet_'
+    MentorNet_filename = MentorNet_filename+args.MentorNet_type+'_'+str(args.noise_rate)+'_trial_'+args.trial
 
     loss_p_prev = 0
     for epoch in range(args.epoch):
@@ -79,34 +80,25 @@ def train(args, MentorNet, StudentNet, train_dataloader, optimizer_M, optimizer_
 
         v_zeros = torch.zeros_like(targets)
         v_zeros = v_zeros.to(args.device)
+        v_ones = torch.ones_like(targets)
+        v_ones = v_ones.to(args.device)
         bsz = inputs.shape[0]
 
-        outputs = StudentNet(inputs)
-        
         with torch.no_grad():
+            outputs = StudentNet(inputs)
             loss = F.cross_entropy(outputs, targets,reduction='none')
-        loss_p = args.ema*loss_p_prev + (1-args.ema)*sorted(loss)[int(bsz*args.gamma_p)]
-        loss_diff = loss-loss_p
+            loss_p = args.ema*loss_p_prev + (1-args.ema)*sorted(loss)[int(bsz*args.gamma_p-1)]
+            loss_diff = loss-loss_p
         
         if args.MentorNet_type == 'PD':
             assert args.noise_rate==0.
-
-            '''
-            v_true is set to the result of the threholding function.
-            '''
-            v_true = (loss_diff<0).float()      
-                                                
-        else:
-            pass
-            '''
-            v_true follows the value of the dataset.
-            '''
+            v_true = (loss_diff<0).long().cuda() 
+  
         '''
         Train MentorNet.
         calculate the gradient of the MentorNet.
         '''
-        
-        v = MentorNet(v_zeros,args.epoch, epoch,loss,loss_diff)
+        v = MentorNet(v_true,args.epoch, epoch,loss,loss_diff)
         loss = BCE_loss(v,v_true.type(torch.FloatTensor).to(args.device))
         MentorNet_loss+=loss.item()
 
@@ -120,23 +112,23 @@ def train(args, MentorNet, StudentNet, train_dataloader, optimizer_M, optimizer_
         '''
         v = v.detach()
         outputs = StudentNet(inputs)
-        loss = F.cross_entropy(outputs,targets,reduction='none')
-        loss = loss*v
-        loss = loss.mean()
-        StudentNet_loss += loss.item()
+        loss_S = F.cross_entropy(outputs,targets,reduction='none')
+        loss_S = loss_S*v
+        loss_S = loss_S.mean()
+        StudentNet_loss += loss_S.item()
 
         optimizer_S.zero_grad()
-        loss.backward()
+        loss_S.backward()
         optimizer_S.step()
 
-        p_bar.set_description("Train Epoch: {epoch}/{epochs:2}. Iter: {batch:4}/{iter:4}. LR: {lr:.6f}. MentorNet_loss: {MentorNet_loss:.4f}. StudentNet_loss: {StudentNet_loss:.4f}.".format(
+        p_bar.set_description("Train Epoch: {epoch}/{epochs:2}. Iter: {batch:4}/{iter:4}. LR: {lr:.6f}. S_loss: {StudentNet_loss:.4f}. l_p: {threshold_loss:.3f}".format(
                     epoch=epoch + 1,
                     epochs=args.epoch,
                     batch=batch_idx + 1,
                     iter=train_dataloader.__len__(),
                     lr=scheduler_S.optimizer.param_groups[0]['lr'],
-                    MentorNet_loss = MentorNet_loss/(batch_idx+1),
-                    StudentNet_loss = StudentNet_loss/(batch_idx+1))
+                    StudentNet_loss = StudentNet_loss/(batch_idx+1),
+                    threshold_loss= loss_p,)
                     )
         p_bar.update()
     p_bar.close()

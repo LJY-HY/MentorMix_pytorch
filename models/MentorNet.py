@@ -17,7 +17,7 @@ class MentorNet_arch(nn.Module):
 
     def forward(self,label,total_epoch, epoch,loss,loss_diff):
         if self.MentorNet_type == 'threshold':
-            return self.forward_th(label,total_epoch, epoch,loss,loss_diff)
+            return self.forward_th(label, epoch,loss,loss_diff)
         elif self.MentorNet_type == 'MentorNet':
             return self.forward_MentorNet(label,total_epoch, epoch,loss,loss_diff)
 

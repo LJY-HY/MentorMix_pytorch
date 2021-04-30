@@ -13,11 +13,46 @@ argparse
 ## How to run
 After you have cloned the repository, you can train each model from scratch with datasets CIFAR10, CIFAR100. Trainable models are [ResNet](https://arxiv.org/abs/1512.03385). You can adjust this code if you want to train other kinds of architectures.
 
+- Using threshold function as MentorNet
 ```bash
-python train.py --noise_rate 0.2 --arch ResNet34
+python train.py --dataset cifar10
+                --StudentNet ResNet34 --MentorNet threshold --MentorNet_type PD
                 --optimizer SGD --scheduler StepLR
-                --lr 0.1 --batch_size 128 --epoch 400
-                --wd 2e-4
+                --lr 0.1 --batch_size 128 --epoch 500 --wd 2e-4
+                --noise_rate 0.2 
+                --ema 0.0001
+                --gamma_p 0.8 --alpha 2.
+                --second_reweight
+                --trial 0
+                --gpu_id 0
+```
+
+- Using DNN as MentorNet  
+First, train MentorNet(**P**re-**D**efined or **D**ata-**D**riven).
+
+```bash
+python3 train_MentorNet.py  --dataset cifar10
+                            --StudentNet ResNet34 --MentorNet MentorNet --MentorNet_type PD
+                            --optimizer SGD --scheduler CosineAnnealing
+                            --lr 0.1 --batch_size 32 --epoch 100 --wd 2e-4
+                            --noise_rate 0.
+                            --ema 0.05
+                            --gamma_p 0.75
+                            --train_MentorNet
+                            --trial 0
+                            --gpu_id 0
+```
+
+(If you train MentorNet in **D**ata-**D**riven way, noise rate has to be the same as one when training StudentNet later.)
+
+Second, train StudentNet with pre-trained MentorNet.
+
+```bash
+python train.py --dataset cifar10
+                --StudentNet ResNet34 --MentorNet MentorNet --MentorNet_type DD
+                --optimizer SGD --scheduler StepLR
+                --lr 0.1 --batch_size 128 --epoch 500 --wd 2e-4
+                --noise_rate 0.2 
                 --ema 0.0001
                 --gamma_p 0.8 --alpha 2.
                 --second_reweight
