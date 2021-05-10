@@ -25,7 +25,6 @@ def get_arguments():
     parser.add_argument('--ema', default = 0.0001, type=float)
     parser.add_argument('--gamma_p', default = 0.8, type=float)
     parser.add_argument('--alpha', default = 2., type=float, choices = [2.,4.,8.,32.])
-    parser.add_argument('--second_reweight', action='store_true')
     parser.add_argument('--burn_in_epoch', default=0)
    
     parser.add_argument('--train_MentorNet',action='store_true')

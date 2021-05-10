@@ -61,8 +61,9 @@ def main():
   
     best_acc=0
     loss_p_prev = 0
+    loss_p_second_prev = 0
     for epoch in range(args.epoch):
-        loss_p_prev = train(args, MentorNet, StudentNet, train_dataloader, optimizer_S, scheduler_S, loss_p_prev, epoch)
+        loss_p_prev, loss_p_second_prev = train(args, MentorNet, StudentNet, train_dataloader, optimizer_S, scheduler_S, loss_p_prev, loss_p_second_prev, epoch)
         acc = test(args, StudentNet, test_dataloader, optimizer_S, scheduler_S, epoch)
         scheduler_S.step()
         if best_acc<acc:
@@ -71,13 +72,21 @@ def main():
                 os.makedirs('checkpoint/'+args.dataset)
             torch.save(StudentNet.state_dict(), path)
 
-def train(args, MentorNet, StudentNet, train_dataloader, optimizer_S, scheduler_S, loss_p_prev, epoch):
+def train(args, MentorNet, StudentNet, train_dataloader, optimizer_S, scheduler_S, loss_p_prev, loss_p_second_prev, epoch):
     StudentNet.train()
     train_loss = 0
     p_bar = tqdm(range(train_dataloader.__len__()))
     loss_average = 0
-    for batch_idx, (inputs, targets) in enumerate(train_dataloader):
-        loss, loss_p_prev = MentorMixLoss(args,MentorNet,StudentNet,inputs,targets,loss_p_prev, epoch)
+    for batch_idx, (inputs, targets,_,v_label,index) in enumerate(train_dataloader):
+        '''
+        3'rd argument is only used when training with MentorNet_DD
+        '''
+        loss, loss_p_prev, loss_p_second_prev, v = MentorMixLoss(args,MentorNet,StudentNet,inputs,targets,v_label,loss_p_prev, loss_p_second_prev, epoch)
+
+        # Update v
+        for count, idx in enumerate(index):
+            train_dataloader.dataset.v_label[idx] = v[count].long()
+
         optimizer_S.zero_grad()
         loss.backward()
         optimizer_S.step()
@@ -92,7 +101,7 @@ def train(args, MentorNet, StudentNet, train_dataloader, optimizer_S, scheduler_
                     )
         p_bar.update()
     p_bar.close()
-    return loss_p_prev
+    return loss_p_prev, loss_p_second_prev
 
 def test(args, StudentNet, test_dataloader, optimizer_S, scheduler_S, epoch):
     StudentNet.eval()

@@ -73,15 +73,10 @@ def train(args, MentorNet, StudentNet, train_dataloader, optimizer_M, optimizer_
     StudentNet_loss = 0
     p_bar = tqdm(range(train_dataloader.__len__()))
     loss_average = 0
-    for batch_idx, (inputs, targets,v_true) in enumerate(train_dataloader):
+    for batch_idx, (inputs, targets, v_true, v_label, index) in enumerate(train_dataloader):
         inputs = inputs.to(args.device)
         targets = targets.to(args.device)
-        v_true = v_true.to(args.device)
-
-        v_zeros = torch.zeros_like(targets)
-        v_zeros = v_zeros.to(args.device)
-        v_ones = torch.ones_like(targets)
-        v_ones = v_ones.to(args.device)
+        v_label = v_label.to(args.device)
         bsz = inputs.shape[0]
 
         with torch.no_grad():
@@ -91,14 +86,17 @@ def train(args, MentorNet, StudentNet, train_dataloader, optimizer_M, optimizer_
             loss_diff = loss-loss_p
         
         if args.MentorNet_type == 'PD':
-            assert args.noise_rate==0.
-            v_true = (loss_diff<0).long().cuda() 
-  
+            assert args.noise_rate==0.          
+            v_true = (loss_diff<0).long().to(args.device)   # closed-form optimal solution
+            
+            if epoch < int(args.epoch*0.2):
+                v_true = torch.bernoulli(torch.ones_like(loss_diff)/2).to(args.device)
+
         '''
         Train MentorNet.
         calculate the gradient of the MentorNet.
         '''
-        v = MentorNet(v_true,args.epoch, epoch,loss,loss_diff)
+        v = MentorNet(v_label,args.epoch, epoch,loss,loss_diff)
         loss = BCE_loss(v,v_true.type(torch.FloatTensor).to(args.device))
         MentorNet_loss+=loss.item()
 
@@ -106,6 +104,9 @@ def train(args, MentorNet, StudentNet, train_dataloader, optimizer_M, optimizer_
         loss.backward()
         optimizer_M.step()
 
+        for count, idx in enumerate(index):
+            train_dataloader.dataset.v_label[idx] = v_true[count].long()
+                
         '''
         Train StudentNet
         calculate the gradient of the StudentNet
@@ -138,8 +139,6 @@ def train(args, MentorNet, StudentNet, train_dataloader, optimizer_M, optimizer_
 def test(args, MentorNet, StudentNet, test_dataloader, optimizer_M, optimizer_S, scheduler_M, scheduler_S, epoch):
     MentorNet.eval()
     StudentNet.eval()
-    # MentorNet_test_loss = 0
-    # StudentNet_test_loss = 0
     acc = 0
     test_loss = 0
     p_bar = tqdm(range(test_dataloader.__len__()))

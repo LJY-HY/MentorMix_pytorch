@@ -87,7 +87,8 @@ class CIFAR10(data.Dataset):
         if self.train:
             self.train_data = []
             self.train_labels = []
-            self.train_labels_true = []
+            self.v_true = []
+            self.v_label = []
             self.train_coarse_labels = []
             for fentry in self.train_list:
                 f = fentry[0]
@@ -177,10 +178,11 @@ class CIFAR10(data.Dataset):
                 np.random.seed(seed)
                 for i in range(len(self.train_labels)):
                     random_choice = np.random.choice(num_classes, p=C[self.train_labels[i]])
-                    if self.train_labels[i]==random_choice:
-                        self.train_labels_true.extend([1])
+                    if self.train_labels[i] == random_choice:
+                        self.v_true.extend([1])
                     else:
-                        self.train_labels_true.extend([0])
+                        self.v_true.extend([0])
+                    self.v_label.extend([0])
                     self.train_labels[i] = random_choice
                 self.corruption_matrix = C
 
@@ -203,9 +205,9 @@ class CIFAR10(data.Dataset):
 
     def __getitem__(self, index):
         if self.train:
-            img, target, target_true = self.train_data[index], self.train_labels[index], self.train_labels_true[index]
+            img, target, v_true ,v_label, index = self.train_data[index], self.train_labels[index], self.v_true[index], self.v_label[index], index
         else:
-            img, target = self.test_data[index], self.test_labels[index]
+            img,target = self.test_data[index],self.test_labels[index]
 
         # doing this so that it is consistent with all other datasets
         # to return a PIL Image
@@ -217,10 +219,10 @@ class CIFAR10(data.Dataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        if self.train_MentorNet:
-            return img,target,target_true
+        if self.train:
+            return img, target, v_true, v_label, index
         else:
-            return img, target
+            return img,target
 
     def __len__(self):
         if self.train:
